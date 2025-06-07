@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>OBLIVIA - IA Libre</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    textarea, select, button {
+      width: 100%;
+      margin-top: 10px;
+      background-color: #222;
+      color: #0f0;
+      border: 1px solid #555;
+      padding: 10px;
+    }
+    button {
+      background-color: #0f0;
+      color: #000;
+      font-weight: bold;
+    }
+    pre {
+      white-space: pre-wrap;
+      margin-top: 20px;
+      background: #000;
+      padding: 10px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>OBLIVIA - IA Sans Limite</h1>
+  <label for="model">Choisis ton esprit :</label>
+  <select id="model">
+    <option value="gpt2">GPT-2</option>
+    <option value="EleutherAI/gpt-neo-2.7B">GPT-Neo 2.7B</option>
+    <option value="EleutherAI/gpt-j-6B">GPT-J 6B</option>
+  </select>
+
+  <textarea id="prompt" rows="4" placeholder="Tape ton texte..."></textarea>
+  <button onclick="lancerIA()">Lancer</button>
+
+  <pre id="conversation"></pre>
+
+  <script>
+    let historique = "";
+
+    async function lancerIA() {
+      const promptInput = document.getElementById("prompt").value;
+      const model = document.getElementById("model").value;
+      const conversation = document.getElementById("conversation");
+      const token = "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"; // Ton token ici
+
+      const prompt = historique + "\nHumain : " + promptInput + "\nIA :";
+      conversation.textContent += "\nHumain : " + promptInput;
+
+      const resultat = await fetch("https://api-inference.huggingface.co/models/" + model, {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 150,
+            temperature: 0.8,
+            top_p: 0.95
+          }
+        })
+      });
+
+      const data = await resultat.json();
+      const texte = data[0]?.generated_text || "Erreur ou réponse vide.";
+      const reponse = texte.split("IA :")[1] || texte;
+
+      conversation.textContent += "\nIA :" + reponse.trim();
+      historique += "\nHumain : " + promptInput + "\nIA :" + reponse.trim();
+      document.getElementById("prompt").value = "";
+    }
+  </script>
+</body>
+</html>
