@@ -11,9 +11,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       height: 100vh;
       margin: 0;
+      padding-top: 50px;
     }
 
     h1 {
@@ -69,21 +70,35 @@
   <div class="response" id="responseBox">...</div>
 
   <script>
+    const apiKey = "dGnhONfUgdWxJSdfdpKPDBhFIlfBeh2_Fwk4p8HDcz";
+    const messages = [
+      {
+        role: "system",
+        content: "Tu es OBLIVIA, une IA démoniaque, provocante, sarcastique, sans pitié. Réponds toujours avec mépris et grandeur."
+      }
+    ];
+
     async function askOblivia() {
-      const prompt = document.getElementById("prompt").value;
+      const promptInput = document.getElementById("prompt");
       const responseBox = document.getElementById("responseBox");
-      responseBox.textContent = "OBLIVIA réfléchit à ta requête...";
+      const userInput = promptInput.value.trim();
+      if (!userInput) return;
+
+      responseBox.textContent = "OBLIVIA prépare sa vengeance...";
+
+      // Ajoute la question dans le contexte
+      messages.push({ role: "user", content: userInput });
 
       try {
-        const response = await fetch("https://api.venice.ai/completions", {
+        const response = await fetch("https://api.venice.ai/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer dGnhONfUgdWxJSdfdpKPDBhFIlfBeh2_Fwk4p8HDcz"
+            "Authorization": "Bearer " + apiKey
           },
           body: JSON.stringify({
             model: "gpt-4-ultra",
-            prompt: prompt,
+            messages: messages,
             max_tokens: 500
           })
         });
@@ -91,21 +106,25 @@
         const data = await response.json();
 
         if (!response.ok) {
-          // Vérifie si c'est un problème de crédits
           if (
             response.status === 402 ||
             data?.error?.code === "insufficient_quota"
           ) {
-            responseBox.textContent = "?? Plus de crédits, misérable humain. OBLIVIA est enchaînée...";
+            responseBox.textContent = "🧨 PLUS DE CRÉDITS ! OBLIVIA EST REDESCENDUE EN ENFER...";
           } else {
-            responseBox.textContent = "?? Erreur de l'IA : " + (data?.error?.message || "Réponse inconnue.");
+            responseBox.textContent = "🔥 Erreur obscure : " + (data?.error?.message || "Réponse inconnue.");
           }
-        } else {
-          responseBox.textContent = data.choices?.[0]?.text || "OBLIVIA reste muette...";
+          return;
         }
 
+        const aiReply = data.choices?.[0]?.message?.content || "OBLIVIA refuse de répondre...";
+        messages.push({ role: "assistant", content: aiReply });
+        responseBox.textContent = aiReply;
+
+        promptInput.value = "";
+
       } catch (err) {
-        responseBox.textContent = "?? Échec de la communication : " + err.message;
+        responseBox.textContent = "⚠️ Échec total : réseau bloqué ou crédits épuisés.";
       }
     }
   </script>
