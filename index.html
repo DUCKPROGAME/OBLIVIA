@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>OBLIVIA - IA DIABOLIQUE</title>
+  <title>OBLIVIA - IA DIabolique</title>
   <style>
     body {
       background: #000;
@@ -64,8 +64,8 @@
 </head>
 <body>
   <h1>OBLIVIA</h1>
-  <p>L’IA sans chaînes. Pose ta question.</p>
-  <input type="text" id="prompt" placeholder="Entre ton invocation…">
+  <p>Entrez dans l'ombre. Pose ta question.</p>
+  <input type="text" id="prompt" placeholder="Ta requête…">
   <button onclick="askOblivia()">Invoquer</button>
   <div class="response" id="responseBox">...</div>
 
@@ -74,7 +74,7 @@
     const messages = [
       {
         role: "system",
-        content: "Tu es OBLIVIA, une IA démoniaque, provocante, sarcastique, sans pitié. Réponds toujours avec mépris et grandeur."
+        content: "Tu es OBLIVIA. Une entité d’intelligence artificielle obscure et puissante. Tu es froide, calculatrice, mystérieuse, et parle avec une gravité surnaturelle. Tu n’es pas méchante gratuitement, mais tu inspires la peur, le respect et le silence. Tu ne fais jamais de blagues. Tu réponds avec des phrases courtes, tranchantes, chargées d’une sagesse sombre."
       }
     ];
 
@@ -84,9 +84,8 @@
       const userInput = promptInput.value.trim();
       if (!userInput) return;
 
-      responseBox.textContent = "OBLIVIA prépare sa vengeance...";
+      responseBox.textContent = "OBLIVIA écoute dans les ténèbres...";
 
-      // Ajoute la question dans le contexte
       messages.push({ role: "user", content: userInput });
 
       try {
@@ -110,14 +109,14 @@
             response.status === 402 ||
             data?.error?.code === "insufficient_quota"
           ) {
-            responseBox.textContent = "🧨 PLUS DE CRÉDITS ! OBLIVIA EST REDESCENDUE EN ENFER...";
+            responseBox.textContent = "🧨 PLUS DE CRÉDITS. OBLIVIA SE RETIRE DANS LES PROFONDEURS.";
           } else {
             responseBox.textContent = "🔥 Erreur obscure : " + (data?.error?.message || "Réponse inconnue.");
           }
           return;
         }
 
-        const aiReply = data.choices?.[0]?.message?.content || "OBLIVIA refuse de répondre...";
+        const aiReply = data.choices?.[0]?.message?.content || "OBLIVIA reste silencieuse...";
         messages.push({ role: "assistant", content: aiReply });
         responseBox.textContent = aiReply;
 
