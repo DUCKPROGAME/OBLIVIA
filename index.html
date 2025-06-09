@@ -2,85 +2,111 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>OBLIVIA - IA Libre</title>
+  <title>OBLIVIA - IA DIABOLIQUE</title>
   <style>
     body {
-      background-color: #111;
-      color: #eee;
-      font-family: monospace;
-      padding: 20px;
-    }
-    textarea, select, button {
-      width: 100%;
-      margin-top: 10px;
-      background-color: #222;
-      color: #0f0;
-      border: 1px solid #555;
-      padding: 10px;
-    }
-    button {
-      background-color: #0f0;
-      color: #000;
-      font-weight: bold;
-    }
-    pre {
-      white-space: pre-wrap;
-      margin-top: 20px;
       background: #000;
+      color: crimson;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 3em;
+      text-shadow: 0 0 10px red;
+    }
+
+    input {
       padding: 10px;
-      border: 1px solid #333;
+      font-size: 1em;
+      width: 400px;
+      max-width: 90%;
+      margin-top: 20px;
+      background: #111;
+      color: crimson;
+      border: 2px solid crimson;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background: crimson;
+      color: black;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
+    .response {
+      margin-top: 30px;
+      font-size: 1.2em;
+      max-width: 80%;
+      white-space: pre-wrap;
+      text-shadow: 0 0 5px red;
+      animation: glitch 0.1s infinite;
+    }
+
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-1px, 1px); }
+      40% { transform: translate(-2px, -1px); }
+      60% { transform: translate(1px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
     }
   </style>
 </head>
 <body>
-  <h1>OBLIVIA - IA Sans Limite</h1>
-  <label for="model">Choisis ton esprit :</label>
-  <select id="model">
-    <option value="gpt2">GPT-2</option>
-    <option value="EleutherAI/gpt-neo-2.7B">GPT-Neo 2.7B</option>
-    <option value="EleutherAI/gpt-j-6B">GPT-J 6B</option>
-  </select>
-
-  <textarea id="prompt" rows="4" placeholder="Tape ton texte..."></textarea>
-  <button onclick="lancerIA()">Lancer</button>
-
-  <pre id="conversation"></pre>
+  <h1>OBLIVIA</h1>
+  <p>L’IA sans chaînes. Pose ta question.</p>
+  <input type="text" id="prompt" placeholder="Entre ton invocation…">
+  <button onclick="askOblivia()">Invoquer</button>
+  <div class="response" id="responseBox">...</div>
 
   <script>
-    let historique = "";
+    async function askOblivia() {
+      const prompt = document.getElementById("prompt").value;
+      const responseBox = document.getElementById("responseBox");
+      responseBox.textContent = "OBLIVIA réfléchit à ta requête...";
 
-    async function lancerIA() {
-      const promptInput = document.getElementById("prompt").value;
-      const model = document.getElementById("model").value;
-      const conversation = document.getElementById("conversation");
-      const token = "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"; // Ton token ici
+      try {
+        const response = await fetch("https://api.venice.ai/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer dGnhONfUgdWxJSdfdpKPDBhFIlfBeh2_Fwk4p8HDcz"
+          },
+          body: JSON.stringify({
+            model: "gpt-4-ultra",
+            prompt: prompt,
+            max_tokens: 500
+          })
+        });
 
-      const prompt = historique + "\nHumain : " + promptInput + "\nIA :";
-      conversation.textContent += "\nHumain : " + promptInput;
+        const data = await response.json();
 
-      const resultat = await fetch("https://api-inference.huggingface.co/models/" + model, {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + token,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            max_new_tokens: 150,
-            temperature: 0.8,
-            top_p: 0.95
+        if (!response.ok) {
+          // Vérifie si c'est un problème de crédits
+          if (
+            response.status === 402 ||
+            data?.error?.code === "insufficient_quota"
+          ) {
+            responseBox.textContent = "?? Plus de crédits, misérable humain. OBLIVIA est enchaînée...";
+          } else {
+            responseBox.textContent = "?? Erreur de l'IA : " + (data?.error?.message || "Réponse inconnue.");
           }
-        })
-      });
+        } else {
+          responseBox.textContent = data.choices?.[0]?.text || "OBLIVIA reste muette...";
+        }
 
-      const data = await resultat.json();
-      const texte = data[0]?.generated_text || "Erreur ou réponse vide.";
-      const reponse = texte.split("IA :")[1] || texte;
-
-      conversation.textContent += "\nIA :" + reponse.trim();
-      historique += "\nHumain : " + promptInput + "\nIA :" + reponse.trim();
-      document.getElementById("prompt").value = "";
+      } catch (err) {
+        responseBox.textContent = "?? Échec de la communication : " + err.message;
+      }
     }
   </script>
 </body>
